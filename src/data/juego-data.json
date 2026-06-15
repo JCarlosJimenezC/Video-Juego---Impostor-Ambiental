@@ -1,0 +1,237 @@
+{
+  "palabras_ambientales": [
+    {
+      "id": 1,
+      "palabra": "Deforestación",
+      "categoria": "Problemas Ambientales",
+      "descripcion": "Eliminación masiva de bosques y selvas por actividad humana.",
+      "pistas_correctas": [
+        "Pérdida masiva de árboles",
+        "Reduce la biodiversidad",
+        "Libera grandes cantidades de CO2",
+        "Ocurre en el Amazonas y Centroamérica",
+        "Provoca erosión del suelo",
+        "Relacionada con la agricultura extensiva"
+      ]
+    },
+    {
+      "id": 2,
+      "palabra": "Reciclaje",
+      "categoria": "Acciones Sostenibles",
+      "descripcion": "Proceso de transformar residuos en nuevos materiales para su reutilización.",
+      "pistas_correctas": [
+        "Reutilización de materiales usados",
+        "Reduce la basura en vertederos",
+        "Aplica a plástico, vidrio y papel",
+        "Parte de la economía circular",
+        "Ahorra energía de producción",
+        "Los contenedores de colores lo facilitan"
+      ]
+    },
+    {
+      "id": 3,
+      "palabra": "Cambio Climático",
+      "categoria": "Fenómenos Globales",
+      "descripcion": "Alteración a largo plazo de los patrones climáticos de la Tierra.",
+      "pistas_correctas": [
+        "Aumento de temperaturas globales",
+        "Causado por gases de efecto invernadero",
+        "Provoca eventos climáticos extremos",
+        "Afecta los patrones de lluvia",
+        "Derrite los casquetes polares",
+        "Acordado en el Protocolo de Kioto"
+      ]
+    },
+    {
+      "id": 4,
+      "palabra": "Energía Solar",
+      "categoria": "Energías Renovables",
+      "descripcion": "Energía obtenida del sol mediante paneles fotovoltaicos o térmicos.",
+      "pistas_correctas": [
+        "Proviene de los rayos del sol",
+        "Se capta con paneles fotovoltaicos",
+        "No emite contaminantes",
+        "Fuente renovable e inagotable",
+        "Reduce las facturas de electricidad",
+        "Costa Rica la usa en comunidades rurales"
+      ]
+    },
+    {
+      "id": 5,
+      "palabra": "Biodiversidad",
+      "categoria": "Ecosistemas",
+      "descripcion": "Variedad de especies vivas que habitan un ecosistema o el planeta.",
+      "pistas_correctas": [
+        "Variedad de seres vivos en un lugar",
+        "Costa Rica tiene el 5% mundial",
+        "Incluye flora, fauna y microorganismos",
+        "Amenazada por la destrucción del hábitat",
+        "Sustenta los ecosistemas saludables",
+        "Los trópicos la concentran en mayor medida"
+      ]
+    },
+    {
+      "id": 6,
+      "palabra": "Efecto Invernadero",
+      "categoria": "Fenómenos Globales",
+      "descripcion": "Retención del calor solar por gases en la atmósfera terrestre.",
+      "pistas_correctas": [
+        "Gases que atrapan el calor en la atmósfera",
+        "CO2 y metano son los principales",
+        "Natural en pequeñas cantidades",
+        "El exceso provoca calentamiento global",
+        "Relacionado con la quema de combustibles",
+        "Se amplifica por actividades industriales"
+      ]
+    },
+    {
+      "id": 7,
+      "palabra": "Contaminación Plástica",
+      "categoria": "Problemas Ambientales",
+      "descripcion": "Acumulación de residuos plásticos en ecosistemas naturales.",
+      "pistas_correctas": [
+        "Millones de toneladas en los océanos",
+        "Daña la vida marina",
+        "Los microplásticos entran en la cadena alimentaria",
+        "Tarda siglos en degradarse",
+        "Las bolsas y pajillas son los más comunes",
+        "Afecta playas, ríos y mares"
+      ]
+    },
+    {
+      "id": 8,
+      "palabra": "Fotosíntesis",
+      "categoria": "Procesos Naturales",
+      "descripcion": "Proceso por el que las plantas convierten luz solar en energía química.",
+      "pistas_correctas": [
+        "Las plantas transforman luz en alimento",
+        "Produce oxígeno como subproducto",
+        "Requiere luz, agua y CO2",
+        "Ocurre en los cloroplastos",
+        "Base de la cadena alimentaria",
+        "La clorofila es su pigmento clave"
+      ]
+    },
+    {
+      "id": 9,
+      "palabra": "Sequía",
+      "categoria": "Fenómenos Naturales",
+      "descripcion": "Período prolongado de precipitaciones por debajo de lo normal.",
+      "pistas_correctas": [
+        "Falta prolongada de lluvia",
+        "Afecta la agricultura y ganadería",
+        "Reduce los caudales de ríos",
+        "Puede provocar incendios forestales",
+        "Relacionada con el fenómeno El Niño",
+        "Amenaza la seguridad alimentaria"
+      ]
+    },
+    {
+      "id": 10,
+      "palabra": "Energía Eólica",
+      "categoria": "Energías Renovables",
+      "descripcion": "Energía eléctrica generada a partir de la fuerza del viento.",
+      "pistas_correctas": [
+        "Generada por el movimiento del viento",
+        "Usa grandes aerogeneradores",
+        "Fuente renovable y limpia",
+        "Parques en zonas costeras o montañosas",
+        "No produce emisiones de carbono",
+        "Costa Rica tiene parques en Guanacaste"
+      ]
+    },
+    {
+      "id": 11,
+      "palabra": "Huella de Carbono",
+      "categoria": "Conceptos Clave",
+      "descripcion": "Total de gases de efecto invernadero emitidos por una persona o actividad.",
+      "pistas_correctas": [
+        "Mide las emisiones de gases contaminantes",
+        "Se expresa en toneladas de CO2",
+        "Los vuelos la aumentan mucho",
+        "Se puede compensar plantando árboles",
+        "Las empresas también la calculan",
+        "Reducirla es clave para el clima"
+      ]
+    },
+    {
+      "id": 12,
+      "palabra": "Manglar",
+      "categoria": "Ecosistemas",
+      "descripcion": "Ecosistema costero formado por árboles en zonas tropicales entre tierra y mar.",
+      "pistas_correctas": [
+        "Bosque en la zona costera tropical",
+        "Sus raíces están en agua salada",
+        "Refugio de peces y aves",
+        "Protege las costas de huracanes",
+        "Almacena más carbono que otros bosques",
+        "Costa Rica los tiene en el Pacífico y Caribe"
+      ]
+    },
+    {
+      "id": 13,
+      "palabra": "Compostaje",
+      "categoria": "Acciones Sostenibles",
+      "descripcion": "Proceso de descomposición de residuos orgánicos para producir abono natural.",
+      "pistas_correctas": [
+        "Convierte residuos orgánicos en abono",
+        "Reduce los desechos domésticos",
+        "Mejora la calidad del suelo",
+        "Usa bacterias y hongos naturales",
+        "Cascaras y restos de comida sirven",
+        "Alternativa al abono químico"
+      ]
+    },
+    {
+      "id": 14,
+      "palabra": "Capa de Ozono",
+      "categoria": "Fenómenos Globales",
+      "descripcion": "Capa de la estratósfera que protege la Tierra de los rayos ultravioleta.",
+      "pistas_correctas": [
+        "Escudo protector en la estratosfera",
+        "Filtra los rayos ultravioleta del sol",
+        "Los CFC la dañaban severamente",
+        "El Protocolo de Montreal la protegió",
+        "Su agujero está sobre la Antártida",
+        "Sin ella aumentaría el cáncer de piel"
+      ]
+    },
+    {
+      "id": 15,
+      "palabra": "Calentamiento Global",
+      "categoria": "Fenómenos Globales",
+      "descripcion": "Aumento progresivo de la temperatura promedio del planeta.",
+      "pistas_correctas": [
+        "La temperatura del planeta sube gradualmente",
+        "Causa derretimiento de glaciares",
+        "Eleva el nivel del mar",
+        "Intensifica huracanes y tormentas",
+        "Principal consecuencia del efecto invernadero",
+        "El Acuerdo de París busca limitarlo a 1.5°C"
+      ]
+    }
+  ],
+  "categorias": [
+    "Todos",
+    "Problemas Ambientales",
+    "Acciones Sostenibles",
+    "Fenómenos Globales",
+    "Energías Renovables",
+    "Ecosistemas",
+    "Procesos Naturales",
+    "Fenómenos Naturales",
+    "Conceptos Clave"
+  ],
+  "config_juego": {
+    "min_jugadores": 3,
+    "max_jugadores": 8,
+    "tiempo_pista_segundos": 90,
+    "num_impostores": 1
+  },
+  "puntuacion": {
+    "informado_acierta_palabra": 2,
+    "informado_identifica_impostor": 1,
+    "impostor_no_identificado": 3,
+    "impostor_acierta_palabra_bonus": 1
+  }
+}

@@ -1,0 +1,147 @@
+:root {
+  --verde-oscuro: #1b5e20;
+  --verde-medio: #2e7d32;
+  --verde-claro: #4caf50;
+  --verde-brillante: #69f0ae;
+  --azul-oscuro: #0a1628;
+  --azul-medio: #0d2137;
+  --azul-card: #112240;
+  --rojo-impostor: #e53935;
+  --rojo-claro: #ff5252;
+  --dorado: #ffd700;
+  --texto-principal: #e8f5e9;
+  --texto-secundario: #a5d6a7;
+  --texto-gris: #90a4ae;
+  --borde: rgba(105, 240, 174, 0.2);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--azul-oscuro);
+  color: var(--texto-principal);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--azul-oscuro); }
+::-webkit-scrollbar-thumb { background: var(--verde-medio); border-radius: 4px; }
+
+/* Botones reutilizables */
+.btn-primario {
+  background: linear-gradient(135deg, var(--verde-medio), var(--verde-claro));
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+}
+
+.btn-primario:active { transform: translateY(0); }
+
+.btn-primario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secundario {
+  background: transparent;
+  color: var(--verde-claro);
+  border: 2px solid var(--verde-claro);
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-secundario:hover {
+  background: rgba(76, 175, 80, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-peligro {
+  background: linear-gradient(135deg, #c62828, var(--rojo-impostor));
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-peligro:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.5);
+}
+
+.card {
+  background: var(--azul-card);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulso {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes brillar {
+  0%, 100% { box-shadow: 0 0 10px rgba(105, 240, 174, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(105, 240, 174, 0.8); }
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fade-in { animation: fadeIn 0.5s ease forwards; }
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .btn-primario, .btn-secundario, .btn-peligro {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
