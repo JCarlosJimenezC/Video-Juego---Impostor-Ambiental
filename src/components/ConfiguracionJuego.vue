@@ -1,6 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
+const props = defineProps({
+  jugadoresPrevios: { type: Array, default: () => [] },
+  puntosAcumulados: { type: Object, default: () => ({}) }
+})
+
 const emit = defineEmits(['comenzar', 'volver'])
 
 const palabras = ref([])
@@ -8,11 +13,19 @@ const cargando = ref(true)
 const error = ref(null)
 
 const nombreJugador = ref('')
-const jugadores = ref([])
+// Pre-llenar con jugadores de la ronda anterior si existen
+const jugadores = ref(
+  props.jugadoresPrevios.length > 0
+    ? props.jugadoresPrevios.map((nombre, i) => ({ id: Date.now() + i, nombre }))
+    : []
+)
+
 const categoriaFiltro = ref('Todos')
 const categorias = ref([])
 const palabraSeleccionada = ref(null)
 const modoAleatorio = ref(true)
+
+const esSesionContinua = computed(() => props.jugadoresPrevios.length > 0)
 
 onMounted(async () => {
   try {
@@ -33,10 +46,17 @@ const palabrasFiltradas = computed(() => {
   return palabras.value.filter(p => p.categoria === categoriaFiltro.value)
 })
 
+// Leaderboard acumulado para mostrar en la config
+const leaderboardActual = computed(() => {
+  if (!esSesionContinua.value) return []
+  return Object.entries(props.puntosAcumulados)
+    .map(([nombre, total]) => ({ nombre, total }))
+    .sort((a, b) => b.total - a.total)
+})
+
 function agregarJugador() {
   const nombre = nombreJugador.value.trim()
-  if (!nombre) return
-  if (jugadores.value.length >= 8) return
+  if (!nombre || jugadores.value.length >= 8) return
   if (jugadores.value.some(j => j.nombre.toLowerCase() === nombre.toLowerCase())) return
   jugadores.value.push({ id: Date.now(), nombre })
   nombreJugador.value = ''
@@ -47,27 +67,20 @@ function eliminarJugador(id) {
 }
 
 function seleccionarPalabra(palabra) {
-  if (!modoAleatorio.value) {
-    palabraSeleccionada.value = palabra
-  }
+  if (!modoAleatorio.value) palabraSeleccionada.value = palabra
 }
 
-const puedeComenzar = computed(() => {
-  return jugadores.value.length >= 3 && (modoAleatorio.value || palabraSeleccionada.value)
-})
+const puedeComenzar = computed(() =>
+  jugadores.value.length >= 3 && (modoAleatorio.value || palabraSeleccionada.value)
+)
 
 function comenzarJuego() {
   if (!puedeComenzar.value) return
 
-  let palabraElegida
-  if (modoAleatorio.value) {
-    const lista = palabrasFiltradas.value
-    palabraElegida = lista[Math.floor(Math.random() * lista.length)]
-  } else {
-    palabraElegida = palabraSeleccionada.value
-  }
+  const palabraElegida = modoAleatorio.value
+    ? palabrasFiltradas.value[Math.floor(Math.random() * palabrasFiltradas.value.length)]
+    : palabraSeleccionada.value
 
-  // Asignar roles: un impostor aleatorio, resto informados
   const shuffled = [...jugadores.value].sort(() => Math.random() - 0.5)
   const impostorIdx = Math.floor(Math.random() * shuffled.length)
   const jugadoresConRol = shuffled.map((j, idx) => ({
@@ -94,10 +107,10 @@ function teclaEnter(e) {
     <div class="config-contenido fade-in">
       <div class="config-header">
         <button class="btn-volver" @click="emit('volver')">← Volver</button>
-        <h1>⚙️ Configurar Partida</h1>
+        <h1>⚙️ {{ esSesionContinua ? 'Nueva Ronda' : 'Configurar Partida' }}</h1>
       </div>
 
-      <!-- Estado de carga -->
+      <!-- Carga -->
       <div v-if="cargando" class="cargando">
         <div class="spinner"></div>
         <p>Cargando palabras ambientales...</p>
@@ -109,10 +122,29 @@ function teclaEnter(e) {
       </div>
 
       <template v-else>
-        <!-- Sección jugadores -->
+
+        <!-- Marcador acumulado (solo si ya hay rondas jugadas) -->
+        <section v-if="leaderboardActual.length > 0" class="card seccion-marcador">
+          <h2>🏆 Marcador Acumulado de la Sesión</h2>
+          <div class="marcador-lista">
+            <div
+              v-for="(entry, idx) in leaderboardActual"
+              :key="entry.nombre"
+              class="marcador-fila"
+            >
+              <span class="marcador-pos">{{ ['🥇','🥈','🥉'][idx] || (idx+1)+'°' }}</span>
+              <span class="marcador-nombre">{{ entry.nombre }}</span>
+              <span class="marcador-pts">{{ entry.total }} pts</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Jugadores -->
         <section class="card seccion-jugadores">
           <h2>🎮 Jugadores ({{ jugadores.length }}/8)</h2>
-          <p class="hint">Mínimo 3 jugadores para comenzar</p>
+          <p class="hint">
+            {{ esSesionContinua ? 'Los jugadores de la ronda anterior están precargados. Podés agregar o quitar.' : 'Mínimo 3 jugadores para comenzar.' }}
+          </p>
 
           <div class="input-grupo">
             <input
@@ -135,14 +167,20 @@ function teclaEnter(e) {
             <TransitionGroup name="jugador">
               <div v-for="(j, idx) in jugadores" :key="j.id" class="jugador-chip">
                 <span class="jugador-numero">{{ idx + 1 }}</span>
-                <span class="jugador-nombre">{{ j.nombre }}</span>
+                <span class="jugador-nombre-txt">{{ j.nombre }}</span>
+                <!-- Puntos acumulados del jugador en esta sesión -->
+                <span
+                  v-if="puntosAcumulados[j.nombre]"
+                  class="jugador-pts-acum"
+                  title="Puntos acumulados en la sesión"
+                >{{ puntosAcumulados[j.nombre] }} pts</span>
                 <button class="btn-eliminar" @click="eliminarJugador(j.id)" title="Eliminar">✕</button>
               </div>
             </TransitionGroup>
           </div>
         </section>
 
-        <!-- Sección palabra -->
+        <!-- Palabra Secreta -->
         <section class="card seccion-palabra">
           <h2>🌿 Palabra Secreta</h2>
 
@@ -159,14 +197,11 @@ function teclaEnter(e) {
             <p class="hint">Se elegirá una palabra al azar de la categoría seleccionada.</p>
             <div class="filtros-categoria">
               <button
-                v-for="cat in categorias"
-                :key="cat"
+                v-for="cat in categorias" :key="cat"
                 class="chip-categoria"
                 :class="{ activo: categoriaFiltro === cat }"
                 @click="categoriaFiltro = cat"
-              >
-                {{ cat }}
-              </button>
+              >{{ cat }}</button>
             </div>
             <p class="palabras-disponibles">{{ palabrasFiltradas.length }} palabras disponibles</p>
           </template>
@@ -174,19 +209,15 @@ function teclaEnter(e) {
           <template v-else>
             <div class="filtros-categoria">
               <button
-                v-for="cat in categorias"
-                :key="cat"
+                v-for="cat in categorias" :key="cat"
                 class="chip-categoria"
                 :class="{ activo: categoriaFiltro === cat }"
                 @click="categoriaFiltro = cat"
-              >
-                {{ cat }}
-              </button>
+              >{{ cat }}</button>
             </div>
             <div class="grid-palabras">
               <button
-                v-for="p in palabrasFiltradas"
-                :key="p.id"
+                v-for="p in palabrasFiltradas" :key="p.id"
                 class="palabra-opcion"
                 :class="{ seleccionada: palabraSeleccionada?.id === p.id }"
                 @click="seleccionarPalabra(p)"
@@ -198,17 +229,12 @@ function teclaEnter(e) {
           </template>
         </section>
 
-        <!-- Botón comenzar -->
-        <button
-          class="btn-primario btn-comenzar"
-          :disabled="!puedeComenzar"
-          @click="comenzarJuego"
-        >
-          🌍 ¡Empezar Partida!
+        <button class="btn-primario btn-comenzar" :disabled="!puedeComenzar" @click="comenzarJuego">
+          🌍 ¡Empezar {{ esSesionContinua ? 'Nueva Ronda' : 'Partida' }}!
         </button>
 
         <p v-if="!puedeComenzar" class="aviso-requisito">
-          {{ jugadores.length < 3 ? 'Necesitas al menos 3 jugadores' : 'Selecciona una palabra para continuar' }}
+          {{ jugadores.length < 3 ? 'Necesitás al menos 3 jugadores' : 'Seleccioná una palabra para continuar' }}
         </p>
       </template>
     </div>
@@ -260,11 +286,7 @@ function teclaEnter(e) {
   font-family: inherit;
   transition: all 0.2s;
 }
-
-.btn-volver:hover {
-  color: var(--texto-principal);
-  border-color: var(--verde-claro);
-}
+.btn-volver:hover { color: var(--texto-principal); border-color: var(--verde-claro); }
 
 .cargando {
   display: flex;
@@ -284,30 +306,41 @@ function teclaEnter(e) {
   animation: girar 0.8s linear infinite;
 }
 
-.error-msg {
-  text-align: center;
-  padding: 40px;
-  color: var(--rojo-claro);
+.error-msg { text-align: center; padding: 40px; color: var(--rojo-claro); }
+
+/* Marcador acumulado */
+.seccion-marcador h2 {
+  color: var(--dorado);
+  margin-bottom: 14px;
+  font-size: 1.1rem;
 }
 
-.seccion-jugadores h2,
-.seccion-palabra h2 {
+.marcador-lista { display: flex; flex-direction: column; gap: 8px; }
+
+.marcador-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255,215,0,0.05);
+  border: 1px solid rgba(255,215,0,0.15);
+  border-radius: 8px;
+}
+
+.marcador-pos { font-size: 1.1rem; width: 28px; }
+.marcador-nombre { flex: 1; font-weight: 600; }
+.marcador-pts { color: var(--dorado); font-weight: 800; }
+
+/* Jugadores */
+.seccion-jugadores h2, .seccion-palabra h2 {
   color: var(--verde-brillante);
   margin-bottom: 6px;
   font-size: 1.2rem;
 }
 
-.hint {
-  color: var(--texto-gris);
-  font-size: 0.85rem;
-  margin-bottom: 14px;
-}
+.hint { color: var(--texto-gris); font-size: 0.85rem; margin-bottom: 14px; }
 
-.input-grupo {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
+.input-grupo { display: flex; gap: 10px; margin-bottom: 16px; }
 
 .input-nombre {
   flex: 1;
@@ -320,12 +353,7 @@ function teclaEnter(e) {
   font-family: inherit;
   transition: border-color 0.2s;
 }
-
-.input-nombre:focus {
-  outline: none;
-  border-color: var(--verde-claro);
-}
-
+.input-nombre:focus { outline: none; border-color: var(--verde-claro); }
 .input-nombre::placeholder { color: var(--texto-gris); }
 
 .btn-agregar { padding: 10px 20px; white-space: nowrap; }
@@ -348,13 +376,18 @@ function teclaEnter(e) {
   font-size: 0.95rem;
 }
 
-.jugador-numero {
-  color: var(--verde-brillante);
-  font-weight: 700;
-  font-size: 0.85rem;
-}
+.jugador-numero { color: var(--verde-brillante); font-weight: 700; font-size: 0.85rem; }
+.jugador-nombre-txt { color: var(--texto-principal); }
 
-.jugador-nombre { color: var(--texto-principal); }
+.jugador-pts-acum {
+  background: rgba(255,215,0,0.15);
+  color: var(--dorado);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,215,0,0.25);
+}
 
 .btn-eliminar {
   background: none;
@@ -367,19 +400,13 @@ function teclaEnter(e) {
   opacity: 0.7;
   transition: opacity 0.2s;
 }
-
 .btn-eliminar:hover { opacity: 1; }
 
-/* Transición lista jugadores */
 .jugador-enter-active, .jugador-leave-active { transition: all 0.3s ease; }
 .jugador-enter-from { opacity: 0; transform: scale(0.8); }
 .jugador-leave-to { opacity: 0; transform: scale(0.8); }
 
-.modo-seleccion {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
+.modo-seleccion { display: flex; gap: 10px; margin-bottom: 14px; }
 
 .modo-btn {
   display: flex;
@@ -393,21 +420,14 @@ function teclaEnter(e) {
   color: var(--texto-gris);
   font-size: 0.95rem;
 }
-
 .modo-btn input { display: none; }
-
 .modo-btn.activo {
   border-color: var(--verde-claro);
   background: rgba(76, 175, 80, 0.1);
   color: var(--verde-claro);
 }
 
-.filtros-categoria {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
+.filtros-categoria { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 
 .chip-categoria {
   padding: 5px 12px;
@@ -420,18 +440,13 @@ function teclaEnter(e) {
   font-family: inherit;
   transition: all 0.2s;
 }
-
 .chip-categoria.activo, .chip-categoria:hover {
   border-color: var(--verde-claro);
   color: var(--verde-claro);
   background: rgba(76, 175, 80, 0.1);
 }
 
-.palabras-disponibles {
-  color: var(--texto-gris);
-  font-size: 0.85rem;
-  margin-top: 4px;
-}
+.palabras-disponibles { color: var(--texto-gris); font-size: 0.85rem; margin-top: 4px; }
 
 .grid-palabras {
   display: grid;
@@ -454,41 +469,14 @@ function teclaEnter(e) {
   text-align: left;
   transition: all 0.2s;
 }
+.palabra-opcion:hover { border-color: var(--verde-claro); background: rgba(76,175,80,0.08); }
+.palabra-opcion.seleccionada { border-color: var(--verde-brillante); background: rgba(105,240,174,0.1); }
+.palabra-texto { color: var(--texto-principal); font-weight: 600; font-size: 0.95rem; }
+.palabra-cat { color: var(--texto-gris); font-size: 0.75rem; margin-top: 3px; }
 
-.palabra-opcion:hover {
-  border-color: var(--verde-claro);
-  background: rgba(76, 175, 80, 0.08);
-}
+.btn-comenzar { width: 100%; padding: 18px; font-size: 1.15rem; border-radius: 12px; }
 
-.palabra-opcion.seleccionada {
-  border-color: var(--verde-brillante);
-  background: rgba(105, 240, 174, 0.1);
-}
-
-.palabra-texto {
-  color: var(--texto-principal);
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.palabra-cat {
-  color: var(--texto-gris);
-  font-size: 0.75rem;
-  margin-top: 3px;
-}
-
-.btn-comenzar {
-  width: 100%;
-  padding: 18px;
-  font-size: 1.15rem;
-  border-radius: 12px;
-}
-
-.aviso-requisito {
-  text-align: center;
-  color: var(--texto-gris);
-  font-size: 0.88rem;
-}
+.aviso-requisito { text-align: center; color: var(--texto-gris); font-size: 0.88rem; }
 
 @media (max-width: 600px) {
   .config-header h1 { font-size: 1.4rem; }

@@ -1,12 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import TarjetaJugador from './TarjetaJugador.vue'
 
 const props = defineProps({
-  datos: {
-    type: Object,
-    required: true
-  }
+  datos: { type: Object, required: true }
 })
 
 const emit = defineEmits(['jugar-otra-vez', 'volver-inicio'])
@@ -36,25 +32,23 @@ const impostorVotado = computed(() =>
   props.datos.jugadores.find(j => j.id === props.datos.impostorVotadoId)
 )
 
-const resultadoTitulo = computed(() => {
-  if (props.datos.palabraCorrecta && props.datos.impostorIdentificado) return '¡Victoria Total de los Informados!'
-  if (props.datos.palabraCorrecta && !props.datos.impostorIdentificado) return '¡El Impostor Pasó Desapercibido!'
-  if (!props.datos.palabraCorrecta && props.datos.impostorIdentificado) return '¡Impostor Descubierto pero Confundieron!'
-  return '¡El Impostor Ganó la Ronda!'
-})
+const resultadoTitulo = computed(() =>
+  props.datos.impostorIdentificado
+    ? '¡Los Informados Descubrieron al Impostor!'
+    : '¡El Impostor Pasó Desapercibido!'
+)
 
-const resultadoEmoji = computed(() => {
-  if (props.datos.palabraCorrecta && props.datos.impostorIdentificado) return '🏆'
-  if (!props.datos.palabraCorrecta || !props.datos.impostorIdentificado) return '🎭'
-  return '⚖️'
-})
+const resultadoEmoji = computed(() =>
+  props.datos.impostorIdentificado ? '🏆' : '🎭'
+)
 
+const avatares = ['🧑','👩','👨','🧒','👧','🧔','👱','🧕']
 const medallones = ['🥇', '🥈', '🥉']
 </script>
 
 <template>
   <div class="resultados-pantalla">
-    <!-- Confeti animado -->
+    <!-- Confeti -->
     <div v-if="mostrarConfeti" class="confeti-contenedor">
       <div v-for="i in 30" :key="i" class="confeti-pieza" :style="{
         left: (Math.random() * 100) + '%',
@@ -66,33 +60,34 @@ const medallones = ['🥇', '🥈', '🥉']
 
     <div class="resultados-contenido fade-in">
 
-      <!-- Banner de resultado principal -->
-      <div class="banner-resultado" :class="{ victoria: datos.palabraCorrecta && datos.impostorIdentificado, derrota: !datos.palabraCorrecta || !datos.impostorIdentificado }">
+      <!-- Banner principal -->
+      <div
+        class="banner-resultado"
+        :class="{ victoria: datos.impostorIdentificado, derrota: !datos.impostorIdentificado }"
+      >
         <div class="resultado-emoji">{{ resultadoEmoji }}</div>
         <h1>{{ resultadoTitulo }}</h1>
+        <p class="rondas-jugadas">{{ datos.totalRondas }} ronda(s) de pistas jugadas</p>
       </div>
 
-      <!-- Detalle de la ronda -->
+      <!-- Resumen -->
       <div class="card detalle-ronda">
-        <h2>📊 Resumen de la Ronda</h2>
+        <h2>📊 Resumen</h2>
         <div class="detalle-grid">
           <div class="detalle-item">
             <span class="detalle-label">Palabra Secreta</span>
             <span class="detalle-valor palabra-secreta">{{ datos.palabra.palabra }}</span>
           </div>
           <div class="detalle-item">
-            <span class="detalle-label">Grupo adivinó</span>
-            <span class="detalle-valor" :class="datos.palabraCorrecta ? 'correcto' : 'incorrecto'">
-              {{ datos.palabraAdivinada || '(nada)' }}
-              {{ datos.palabraCorrecta ? '✓' : '✗' }}
-            </span>
+            <span class="detalle-label">Categoría</span>
+            <span class="detalle-valor">{{ datos.palabra.categoria }}</span>
           </div>
           <div class="detalle-item">
             <span class="detalle-label">Impostor Real</span>
             <span class="detalle-valor impostor-nombre">🎭 {{ impostorReal?.nombre }}</span>
           </div>
           <div class="detalle-item">
-            <span class="detalle-label">Votaron por</span>
+            <span class="detalle-label">El grupo votó por</span>
             <span class="detalle-valor" :class="datos.impostorIdentificado ? 'correcto' : 'incorrecto'">
               {{ impostorVotado?.nombre }}
               {{ datos.impostorIdentificado ? '✓ ¡Correcto!' : '✗ Incorrecto' }}
@@ -101,9 +96,13 @@ const medallones = ['🥇', '🥈', '🥉']
         </div>
       </div>
 
-      <!-- Tabla de puntuación -->
+      <!-- Puntuación -->
       <div class="card tabla-puntuacion">
-        <h2>🏅 Puntuación Final</h2>
+        <h2>🏅 Puntuación</h2>
+        <div class="puntuacion-leyenda">
+          <span class="leyenda-item informado">Informados identifican impostor: +3 pts</span>
+          <span class="leyenda-item impostor-leg">Impostor no identificado: +3 pts</span>
+        </div>
         <div class="lista-puntuacion">
           <div
             v-for="(j, idx) in jugadoresOrdenados"
@@ -115,56 +114,66 @@ const medallones = ['🥇', '🥈', '🥉']
             }"
           >
             <span class="posicion">{{ medallones[idx] || (idx + 1) + '°' }}</span>
-            <span class="jugador-avatar-pts">{{ ['🧑','👩','👨','🧒','👧','🧔','👱','🧕'][j.id % 8] }}</span>
+            <span class="jugador-avatar-pts">{{ avatares[j.id % 8] }}</span>
             <span class="jugador-nombre-pts">
               {{ j.nombre }}
               <span v-if="j.id === datos.impostorId" class="tag-impostor">IMPOSTOR</span>
             </span>
-            <span class="puntos-ganados">
-              +{{ j.puntosGanados }} pts
-            </span>
+            <span class="puntos-ganados">+{{ j.puntosGanados }} pts</span>
           </div>
         </div>
       </div>
 
-      <!-- Análisis de pistas -->
+      <!-- Análisis de pistas por ronda -->
       <div class="card analisis-pistas">
         <h2>🔍 Análisis de Pistas</h2>
-        <p class="analisis-subtitulo">¿Notaron algo sospechoso?</p>
-        <div class="pistas-analisis">
+        <p class="analisis-subtitulo">Las pistas del Impostor eran las más vagas o incoherentes.</p>
+
+        <div class="jugadores-analisis">
           <div
             v-for="j in datos.jugadores"
             :key="j.id"
-            class="pista-analisis-item"
+            class="jugador-analisis-bloque"
             :class="{ impostor: j.id === datos.impostorId }"
           >
-            <div class="pista-analisis-header">
-              <span class="pista-analisis-nombre">
+            <div class="jugador-analisis-header">
+              <span class="jugador-analisis-avatar">{{ avatares[j.id % 8] }}</span>
+              <span class="jugador-analisis-nombre">
                 {{ j.nombre }}
                 <span v-if="j.id === datos.impostorId" class="badge-impostor">🎭 IMPOSTOR</span>
               </span>
             </div>
-            <p class="pista-analisis-texto">"{{ j.pista || '(sin pista)' }}"</p>
+            <div class="historial-pistas">
+              <div
+                v-for="hp in j.historialPistas"
+                :key="hp.ronda"
+                class="pista-historial-item"
+              >
+                <span class="pista-ronda-label">Ronda {{ hp.ronda }}</span>
+                <span class="pista-historial-texto">"{{ hp.pista }}"</span>
+              </div>
+              <p v-if="!j.historialPistas?.length" class="sin-pistas">(sin pistas registradas)</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Ganadores destacados -->
+      <!-- Ganadores -->
       <div v-if="ganadores.length > 0" class="card ganadores-bloque">
         <h2>🎉 {{ ganadores.length === 1 ? 'Ganador' : 'Empate' }} de la Ronda</h2>
         <div class="ganadores-lista">
           <div v-for="g in ganadores" :key="g.id" class="ganador-chip">
-            <span>{{ ['🧑','👩','👨','🧒','👧','🧔','👱','🧕'][g.id % 8] }}</span>
+            <span>{{ avatares[g.id % 8] }}</span>
             <strong>{{ g.nombre }}</strong>
             <span class="ganador-pts">{{ g.puntosGanados }} pts</span>
           </div>
         </div>
       </div>
 
-      <!-- Botones de acción -->
+      <!-- Acciones -->
       <div class="acciones-finales">
         <button class="btn-primario btn-accion" @click="emit('jugar-otra-vez')">
-          🔄 Jugar Otra Ronda
+          🔄 Jugar Otra Vez
         </button>
         <button class="btn-secundario btn-accion" @click="emit('volver-inicio')">
           🏠 Menú Principal
@@ -185,7 +194,6 @@ const medallones = ['🥇', '🥈', '🥉']
   overflow: hidden;
 }
 
-/* Confeti */
 .confeti-contenedor {
   position: fixed;
   inset: 0;
@@ -247,19 +255,25 @@ const medallones = ['🥇', '🥈', '🥉']
   -webkit-text-fill-color: initial;
   background: none;
   color: var(--texto-principal);
+  margin-bottom: 6px;
+}
+
+.rondas-jugadas {
+  color: var(--texto-gris);
+  font-size: 0.88rem;
 }
 
 /* Detalle */
 .card h2 {
   color: var(--verde-brillante);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   font-size: 1.1rem;
 }
 
 .detalle-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .detalle-item {
@@ -271,16 +285,39 @@ const medallones = ['🥇', '🥈', '🥉']
   border-radius: 8px;
 }
 
-.detalle-label { font-size: 0.78rem; color: var(--texto-gris); text-transform: uppercase; letter-spacing: 0.5px; }
-
+.detalle-label { font-size: 0.75rem; color: var(--texto-gris); text-transform: uppercase; letter-spacing: 0.5px; }
 .detalle-valor { font-weight: 600; font-size: 0.95rem; }
-
 .palabra-secreta { color: var(--verde-brillante); font-size: 1.1rem; }
 .impostor-nombre { color: var(--rojo-claro); }
 .correcto { color: var(--verde-brillante); }
 .incorrecto { color: var(--rojo-claro); }
 
 /* Puntuación */
+.puntuacion-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.leyenda-item {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.leyenda-item.informado {
+  background: rgba(76,175,80,0.1);
+  color: var(--verde-brillante);
+  border: 1px solid rgba(76,175,80,0.25);
+}
+
+.leyenda-item.impostor-leg {
+  background: rgba(229,57,53,0.1);
+  color: var(--rojo-claro);
+  border: 1px solid rgba(229,57,53,0.25);
+}
+
 .lista-puntuacion { display: flex; flex-direction: column; gap: 8px; }
 
 .fila-puntuacion {
@@ -291,7 +328,6 @@ const medallones = ['🥇', '🥈', '🥉']
   background: rgba(255,255,255,0.03);
   border-radius: 10px;
   border: 1px solid transparent;
-  transition: all 0.3s;
 }
 
 .fila-puntuacion.primer-lugar {
@@ -311,26 +347,69 @@ const medallones = ['🥇', '🥈', '🥉']
 .puntos-ganados { color: var(--verde-brillante); font-weight: 800; font-size: 1.05rem; }
 
 /* Análisis */
-.analisis-subtitulo { color: var(--texto-gris); font-size: 0.85rem; margin-bottom: 14px; }
+.analisis-subtitulo { color: var(--texto-gris); font-size: 0.85rem; margin-bottom: 16px; }
 
-.pistas-analisis { display: flex; flex-direction: column; gap: 10px; }
+.jugadores-analisis { display: flex; flex-direction: column; gap: 14px; }
 
-.pista-analisis-item {
-  padding: 12px;
+.jugador-analisis-bloque {
+  border-radius: 10px;
+  padding: 14px;
   background: rgba(255,255,255,0.03);
-  border-radius: 8px;
   border-left: 3px solid var(--borde);
 }
 
-.pista-analisis-item.impostor {
+.jugador-analisis-bloque.impostor {
   border-left-color: var(--rojo-claro);
-  background: rgba(229,57,53,0.06);
+  background: rgba(229,57,53,0.05);
 }
 
-.pista-analisis-header { margin-bottom: 6px; }
-.pista-analisis-nombre { font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.badge-impostor { font-size: 0.75rem; background: rgba(229,57,53,0.2); color: var(--rojo-claro); padding: 2px 8px; border-radius: 10px; }
-.pista-analisis-texto { color: var(--texto-gris); font-style: italic; font-size: 0.9rem; }
+.jugador-analisis-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.jugador-analisis-avatar { font-size: 1.4rem; }
+
+.jugador-analisis-nombre {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge-impostor {
+  font-size: 0.72rem;
+  background: rgba(229,57,53,0.2);
+  color: var(--rojo-claro);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.historial-pistas { display: flex; flex-direction: column; gap: 6px; }
+
+.pista-historial-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.pista-ronda-label {
+  flex-shrink: 0;
+  background: rgba(105,240,174,0.1);
+  color: var(--verde-brillante);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 8px;
+}
+
+.pista-historial-texto { color: var(--texto-gris); font-style: italic; }
+
+.sin-pistas { color: var(--texto-gris); font-size: 0.82rem; font-style: italic; }
 
 /* Ganadores */
 .ganadores-lista { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -351,7 +430,6 @@ const medallones = ['🥇', '🥈', '🥉']
 
 /* Acciones */
 .acciones-finales { display: flex; gap: 12px; }
-
 .btn-accion { flex: 1; padding: 14px; font-size: 1rem; }
 
 @media (max-width: 600px) {
