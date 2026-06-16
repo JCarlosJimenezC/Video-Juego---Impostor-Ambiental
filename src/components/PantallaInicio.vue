@@ -59,22 +59,22 @@ onMounted(() => {
           <div class="paso">
             <span class="paso-icono">💬</span>
             <div>
-              <strong>Ronda de Pistas</strong>
-              <p>Cada jugador da una pista sobre la palabra. El impostor debe inventar algo convincente.</p>
+              <strong>Rondas de Pistas (mín. 3)</strong>
+              <p>Cada jugador da una pista por ronda. El impostor inventa algo convincente sin saber la palabra.</p>
             </div>
           </div>
           <div class="paso">
             <span class="paso-icono">🗳️</span>
             <div>
               <strong>Votación</strong>
-              <p>El grupo adivina la palabra y vota quién es el impostor. ¡La deducción decide todo!</p>
+              <p>El grupo vota quién cree que es el impostor. ¡La deducción decide todo!</p>
             </div>
           </div>
           <div class="paso">
             <span class="paso-icono">🏆</span>
             <div>
               <strong>Puntuación</strong>
-              <p>Informados ganan si adivinan la palabra e identifican al impostor. El impostor gana si pasa inadvertido.</p>
+              <p>Informados ganan si identifican al impostor. El impostor gana si pasa inadvertido — y puede sumar bonus si adivina la palabra al final.</p>
             </div>
           </div>
         </div>
@@ -85,12 +85,8 @@ onMounted(() => {
         <h3>Sistema de Puntos</h3>
         <div class="puntos-grid">
           <div class="punto-item informado">
-            <span class="pts">+2</span>
-            <span>Adivinan la palabra</span>
-          </div>
-          <div class="punto-item informado">
-            <span class="pts">+1</span>
-            <span>Identifican al impostor</span>
+            <span class="pts">+3</span>
+            <span>Informados identifican al impostor</span>
           </div>
           <div class="punto-item impostor">
             <span class="pts">+3</span>
@@ -98,7 +94,7 @@ onMounted(() => {
           </div>
           <div class="punto-item impostor">
             <span class="pts">+1</span>
-            <span>Impostor adivina la palabra</span>
+            <span>Bonus: impostor adivina la palabra al final</span>
           </div>
         </div>
       </div>
@@ -226,7 +222,7 @@ onMounted(() => {
 
 .puntos-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
 }
 

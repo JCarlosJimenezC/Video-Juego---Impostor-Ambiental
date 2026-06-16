@@ -2,17 +2,21 @@
 import { computed, onMounted, ref } from 'vue'
 
 const props = defineProps({
-  datos: { type: Object, required: true }
+  datos: { type: Object, required: true },
+  puntosAcumulados: { type: Object, default: () => ({}) }
 })
 
-const emit = defineEmits(['jugar-otra-vez', 'volver-inicio'])
+const emit = defineEmits(['jugar-otra-vez', 'volver-inicio', 'bonus-impostor'])
 
 const mostrarConfeti = ref(false)
+// null = pendiente de decisión | true = adivinó | false = no adivinó
+const bonusDecision = ref(null)
 
 onMounted(() => {
   setTimeout(() => { mostrarConfeti.value = true }, 300)
 })
 
+// Lee props.datos.puntos reactivamente → se actualiza cuando App muta el objeto
 const jugadoresOrdenados = computed(() => {
   return [...props.datos.jugadores]
     .map(j => ({ ...j, puntosGanados: props.datos.puntos[j.id] || 0 }))
@@ -41,6 +45,22 @@ const resultadoTitulo = computed(() =>
 const resultadoEmoji = computed(() =>
   props.datos.impostorIdentificado ? '🏆' : '🎭'
 )
+
+// Leaderboard acumulado de la sesión, ordenado de mayor a menor
+const leaderboardSesion = computed(() => {
+  return Object.entries(props.puntosAcumulados)
+    .map(([nombre, total]) => ({ nombre, total }))
+    .sort((a, b) => b.total - a.total)
+})
+
+const haySesionAcumulada = computed(() =>
+  leaderboardSesion.value.some(e => e.total > 0)
+)
+
+function confirmarBonus(adivinó) {
+  bonusDecision.value = adivinó
+  if (adivinó) emit('bonus-impostor')
+}
 
 const avatares = ['🧑','👩','👨','🧒','👧','🧔','👱','🧕']
 const medallones = ['🥇', '🥈', '🥉']
@@ -96,34 +116,6 @@ const medallones = ['🥇', '🥈', '🥉']
         </div>
       </div>
 
-      <!-- Puntuación -->
-      <div class="card tabla-puntuacion">
-        <h2>🏅 Puntuación</h2>
-        <div class="puntuacion-leyenda">
-          <span class="leyenda-item informado">Informados identifican impostor: +3 pts</span>
-          <span class="leyenda-item impostor-leg">Impostor no identificado: +3 pts</span>
-        </div>
-        <div class="lista-puntuacion">
-          <div
-            v-for="(j, idx) in jugadoresOrdenados"
-            :key="j.id"
-            class="fila-puntuacion"
-            :class="{
-              'primer-lugar': idx === 0 && j.puntosGanados > 0,
-              'es-impostor': j.id === datos.impostorId
-            }"
-          >
-            <span class="posicion">{{ medallones[idx] || (idx + 1) + '°' }}</span>
-            <span class="jugador-avatar-pts">{{ avatares[j.id % 8] }}</span>
-            <span class="jugador-nombre-pts">
-              {{ j.nombre }}
-              <span v-if="j.id === datos.impostorId" class="tag-impostor">IMPOSTOR</span>
-            </span>
-            <span class="puntos-ganados">+{{ j.puntosGanados }} pts</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Análisis de pistas por ronda -->
       <div class="card analisis-pistas">
         <h2>🔍 Análisis de Pistas</h2>
@@ -158,7 +150,82 @@ const medallones = ['🥇', '🥈', '🥉']
         </div>
       </div>
 
-      <!-- Ganadores -->
+      <!-- Bonus del Impostor -->
+      <div class="card bonus-impostor-card">
+        <h2>🎯 Bonus del Impostor</h2>
+        <p class="bonus-descripcion">
+          Ahora que se reveló la palabra, ¿logró
+          <strong>{{ impostorReal?.nombre }}</strong> adivinarla sin saberla?
+        </p>
+
+        <!-- Pendiente de decisión -->
+        <div v-if="bonusDecision === null" class="bonus-pregunta">
+          <p class="bonus-palabra-ref">
+            La palabra era: <strong class="bonus-palabra-txt">{{ datos.palabra.palabra }}</strong>
+          </p>
+          <div class="bonus-botones">
+            <button class="btn-bonus-si" @click="confirmarBonus(true)">
+              ✓ Sí adivinó — sumar +1 punto
+            </button>
+            <button class="btn-bonus-no" @click="confirmarBonus(false)">
+              ✗ No adivinó
+            </button>
+          </div>
+        </div>
+
+        <!-- Decisión tomada -->
+        <div v-else class="bonus-resultado" :class="bonusDecision ? 'bonus-si' : 'bonus-no'">
+          <span v-if="bonusDecision">
+            🏅 +1 punto otorgado a <strong>{{ impostorReal?.nombre }}</strong> — ¡lo adivinó!
+          </span>
+          <span v-else>
+            El impostor no adivinó la palabra.
+          </span>
+        </div>
+      </div>
+
+      <!-- Tabla de puntos actualizada (se re-renderiza reactivamente) -->
+      <div class="card tabla-puntuacion-final">
+        <h2>📊 Puntos de esta Ronda (final)</h2>
+        <div class="lista-puntuacion">
+          <div
+            v-for="(j, idx) in jugadoresOrdenados"
+            :key="j.id"
+            class="fila-puntuacion"
+            :class="{
+              'primer-lugar': idx === 0 && j.puntosGanados > 0,
+              'es-impostor': j.id === datos.impostorId
+            }"
+          >
+            <span class="posicion">{{ medallones[idx] || (idx + 1) + '°' }}</span>
+            <span class="jugador-avatar-pts">{{ avatares[j.id % 8] }}</span>
+            <span class="jugador-nombre-pts">
+              {{ j.nombre }}
+              <span v-if="j.id === datos.impostorId" class="tag-impostor">IMPOSTOR</span>
+            </span>
+            <span class="puntos-ganados">+{{ j.puntosGanados }} pts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marcador Acumulado de la Sesión -->
+      <div v-if="haySesionAcumulada" class="card marcador-sesion">
+        <h2>🏆 Marcador Total de la Sesión</h2>
+        <div class="lista-puntuacion">
+          <div
+            v-for="(entry, idx) in leaderboardSesion"
+            :key="entry.nombre"
+            class="fila-puntuacion fila-acumulada"
+            :class="{ 'primer-lugar': idx === 0 }"
+          >
+            <span class="posicion">{{ medallones[idx] || (idx + 1) + '°' }}</span>
+            <span class="jugador-nombre-pts">{{ entry.nombre }}</span>
+            <span class="puntos-acumulados-total">{{ entry.total }} pts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ganadores de la ronda -->
       <div v-if="ganadores.length > 0" class="card ganadores-bloque">
         <h2>🎉 {{ ganadores.length === 1 ? 'Ganador' : 'Empate' }} de la Ronda</h2>
         <div class="ganadores-lista">
@@ -428,7 +495,114 @@ const medallones = ['🥇', '🥈', '🥉']
 
 .ganador-pts { color: var(--dorado); font-weight: 700; }
 
-/* Acciones */
+/* ── Bonus del Impostor ────────────────────────────────────────────────── */
+.bonus-impostor-card {
+  border-color: rgba(255, 215, 0, 0.25) !important;
+  background: rgba(255, 215, 0, 0.04) !important;
+}
+
+.bonus-impostor-card h2 { color: var(--dorado) !important; }
+
+.bonus-descripcion {
+  color: var(--texto-gris);
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.bonus-descripcion strong { color: var(--texto-principal); }
+
+.bonus-palabra-ref {
+  color: var(--texto-gris);
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+.bonus-palabra-txt {
+  color: var(--verde-brillante);
+  font-size: 1.05rem;
+}
+
+.bonus-botones {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-bonus-si {
+  flex: 1;
+  min-width: 160px;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #2e7d32, var(--verde-claro));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s;
+  box-shadow: 0 4px 14px rgba(76,175,80,0.3);
+}
+
+.btn-bonus-si:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(76,175,80,0.5); }
+
+.btn-bonus-no {
+  flex: 1;
+  min-width: 120px;
+  padding: 13px 20px;
+  background: transparent;
+  color: var(--texto-gris);
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn-bonus-no:hover { border-color: var(--texto-gris); color: var(--texto-principal); }
+
+.bonus-resultado {
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.bonus-resultado.bonus-si {
+  background: rgba(76,175,80,0.12);
+  border: 1px solid rgba(76,175,80,0.3);
+  color: var(--verde-brillante);
+}
+
+.bonus-resultado.bonus-no {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--borde);
+  color: var(--texto-gris);
+}
+
+/* ── Tabla final (post-bonus) ──────────────────────────────────────────── */
+.tabla-puntuacion-final h2 { color: var(--verde-brillante); margin-bottom: 14px; font-size: 1.1rem; }
+
+/* ── Marcador Acumulado de la Sesión ───────────────────────────────────── */
+.marcador-sesion {
+  border-color: rgba(255,215,0,0.2) !important;
+  background: rgba(255,215,0,0.03) !important;
+}
+
+.marcador-sesion h2 { color: var(--dorado) !important; margin-bottom: 14px; font-size: 1.1rem; }
+
+.fila-acumulada { background: rgba(255,215,0,0.04) !important; }
+
+.puntos-acumulados-total {
+  color: var(--dorado);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* ── Acciones ──────────────────────────────────────────────────────────── */
 .acciones-finales { display: flex; gap: 12px; }
 .btn-accion { flex: 1; padding: 14px; font-size: 1rem; }
 
@@ -436,5 +610,6 @@ const medallones = ['🥇', '🥈', '🥉']
   .detalle-grid { grid-template-columns: 1fr; }
   .acciones-finales { flex-direction: column; }
   .banner-resultado h1 { font-size: 1.3rem; }
+  .bonus-botones { flex-direction: column; }
 }
 </style>

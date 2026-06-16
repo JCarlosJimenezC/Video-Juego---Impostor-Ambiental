@@ -77,6 +77,7 @@ function volverInicio() {
       v-else-if="pantalla === 'resultados'"
       :datos="estadoJuego"
       :puntos-acumulados="puntosAcumulados"
+      @bonus-impostor="bonusImpostor"
       @jugar-otra-vez="jugarOtraVez"
       @volver-inicio="volverInicio"
     />
